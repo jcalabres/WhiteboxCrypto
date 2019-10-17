@@ -23,7 +23,7 @@ Example of the traces:
 17,8E,D1,09,16,36,C4,CF,B4,E7,48,23,80,27,65,71
 ```
 
-* Every 4 bytes represents one column of the output.
+- Every 4 bytes represents one column of the output.
 
 ## Usage
 
