@@ -40,7 +40,7 @@ Execute the dfa script with Python3 and specify the output file.
 python3 dfa.py outputs_DFA.dat [limit] [-log]
 ```
 
-* [limit]: Specifies how many candidates are needed for the DFA (0 by default)
+* [limit]: Specifies how many candidates are needed for the DFA (0 by default).
 * [-log]: Specifies if you want to write all the candidates inside a file.
 
 ## Example
