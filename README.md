@@ -2,6 +2,8 @@
 
 This repository contains a WBC DFA attack implementation.
 
+<img src="https://img.shields.io/badge/kikones34-approved-blue" alt="approved">
+
 ## What is DFA?
 
 *Differential fault analysis (DFA) is a type of side channel attack in the field of cryptography, specifically cryptanalysis. The principle is to induce faults—unexpected environmental conditions—into cryptographic implementations, to reveal their internal states.*
@@ -22,7 +24,7 @@ Example of the traces:
 17,35,D1,AA,C2,36,1B,CF,B4,10,48,7C,DC,27,8C,71
 ```
 
-** Every 4 bytes represents one column of the output.
+* Every 4 bytes represents one column of the output.
 
 ## Usage
 
@@ -32,7 +34,7 @@ Execute the dfa script with Python3 and specify the output file.
 python3 dfa.py outputs_DFA.dat [limit] [-log]
 ```
 
-* [limit]: Specifies how many candidates are needed for the DFA.
+* [limit]: Specifies how many candidates are needed for the DFA (0 by default)
 * [-log]: Specifies if you want to write all the candidates inside a file.
 
 ## Example
@@ -71,5 +73,3 @@ A project inspired by:
 
 * Differential Fault Analysis on A.E.S.
 * People breaking WBC implementations.
-
-<img src="https://img.shields.io/badge/kikones34-approved-blue" alt="approved">

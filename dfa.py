@@ -68,13 +68,13 @@ def ForceCandidates(traces,target,multipliers,limit):
 	for trace in traces:
 		for error in range(256):
 			for b1 in range(256):
-				if LeftFormula(b1,error,multipliers[0])==RigthFormula(b1,trace[target[0]]):				
+				if LeftFormula(b1,error,multipliers[0])==RightFormula(b1,trace[target[0]]):				
 					for b2 in range(256):
-						if LeftFormula(b2,error,multipliers[1])==RigthFormula(b2,trace[target[1]]):
+						if LeftFormula(b2,error,multipliers[1])==RightFormula(b2,trace[target[1]]):
 							for b3 in range(256):
-								if LeftFormula(b3,error,multipliers[2])==RigthFormula(b3,trace[target[2]]):
+								if LeftFormula(b3,error,multipliers[2])==RightFormula(b3,trace[target[2]]):
 									for b4 in range(256):
-										if LeftFormula(b4,error,multipliers[3])==RigthFormula(b4,trace[target[3]]):
+										if LeftFormula(b4,error,multipliers[3])==RightFormula(b4,trace[target[3]]):
 											candidates.append([b1,b2,b3,b4])
 											if limit!=0 and len(candidates)>=limit:
 												return candidates
@@ -135,7 +135,7 @@ def PreviousRoundKey(key,rcon):
 SubByte = lambda b: sbox[b]
 SubBytes  = np.vectorize(lambda b: sbox[b])
 Str2Bytes = lambda string: list(map(lambda n: int(n, 16), string))
-RigthFormula = lambda b,e: SubByte(b)^e
+RightFormula = lambda b,e: SubByte(b)^e
 LeftFormula = lambda b,e,n: SubByte(b^(pmul(n,e)))
 ShiftRowsdDual = lambda m, sgn: np.array([np.roll(row, sgn*i) for i, row in enumerate(m)], dtype=np.uint8)
 ShiftRows = lambda m: ShiftRowsdDual(m, -1)
