@@ -6,6 +6,19 @@ from threading import Thread
 from collections import Counter
 from functools import lru_cache
 
+class ThreadWithReturnValue(Thread):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
+		Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
+		print(f"[DFA] Starting thread for target {args[1]}.")
+		self._return = None
+
+	def run(self):
+		if self._target is not None:
+			self._return = self._target(*self._args, **self._kwargs)
+
+	def join(self):
+		Thread.join(self)
+		return self._return
 
 sbox = np.array([
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -29,7 +42,7 @@ sbox = np.array([
 vhex = np.vectorize(hex)
 
 def GenerateEOUTMatrix(patterns,xorfaults):
-	matrix={0:[],1:[],2:[],3:[]}
+	matrix=[[],[],[],[]]
 	for num, pattern in enumerate(patterns):
 		for fault in xorfaults:
 			if np.all((pattern^(fault!=0)==0)):
@@ -50,49 +63,36 @@ def pmul(p1, p2):
         p2 >>= 1
     return res
 
-def ForceCandidates(trace,error,target,multipliers):
+def ForceCandidates(traces,target,multipliers,limit):
 	candidates=[]
-	for b1 in range(256):
-		if LeftFormula(b1,error,multipliers[0])==RigthFormula(b1,trace[target[0]]):				
-			for b2 in range(256):
-				if LeftFormula(b2,error,multipliers[1])==RigthFormula(b2,trace[target[1]]):
-					for b3 in range(256):
-						if LeftFormula(b3,error,multipliers[2])==RigthFormula(b3,trace[target[2]]):
-							for b4 in range(256):
-								if LeftFormula(b4,error,multipliers[3])==RigthFormula(b4,trace[target[3]]):
-									candidates.append([b1,b2,b3,b4])
+	for trace in traces:
+		for error in range(256):
+			for b1 in range(256):
+				if LeftFormula(b1,error,multipliers[0])==RigthFormula(b1,trace[target[0]]):				
+					for b2 in range(256):
+						if LeftFormula(b2,error,multipliers[1])==RigthFormula(b2,trace[target[1]]):
+							for b3 in range(256):
+								if LeftFormula(b3,error,multipliers[2])==RigthFormula(b3,trace[target[2]]):
+									for b4 in range(256):
+										if LeftFormula(b4,error,multipliers[3])==RigthFormula(b4,trace[target[3]]):
+											candidates.append([b1,b2,b3,b4])
+											if limit!=0 and len(candidates)>=limit:
+												return candidates
 	return candidates
 
-def FindCandidates(category,trace):
-	candidates=[]
-	for error in range(256):
-		if category==0:
-			"""que = Queue.Queue()
-			thread=Thread(target=ForceCandidates, args=(trace,error,[(0,0),(1,3),(2,2),(3,1)],[2,1,1,3]))
-			thread.start()
-			thread.join()
-			candidate=que.get()"""
-			candidate=ForceCandidates(trace,error,[(0,0),(1,3),(2,2),(3,1)],[2,1,1,3])
-		elif category==1:
-			candidate=ForceCandidates(trace,error,[(0,1),(1,0),(2,3),(3,2)],[3,2,1,1])
-		elif category==2:
-			candidate=ForceCandidates(trace,error,[(0,2),(1,1),(2,0),(3,3)],[1,3,2,1])
-		elif category==3:
-			candidate=ForceCandidates(trace,error,[(0,3),(1,2),(2,1),(3,0)],[1,1,3,2])
-		if candidate:
-			for cand in candidate:
-				candidates.append(cand)
-	return candidates
-
-def FindAllCandidates(matrix):
+def FindAllCandidates(matrix,limit):
+	threadPool=[]
 	allCandidates=[[], [], [], []]
-	for k, v in matrix.items():
-		for ntrace in range(len(v)):
-			trace=v[ntrace]
-			candidates=FindCandidates(k,trace)
-			if candidates:
-				for candidate in candidates:	
-					allCandidates[k].append(candidate)
+	target=[[(0,0),(1,3),(2,2),(3,1)],[(0,1),(1,0),(2,3),(3,2)],[(0,2),(1,1),(2,0),(3,3)],[(0,3),(1,2),(2,1),(3,0)]]
+	multipliers=[[2,1,1,3],[3,2,1,1],[1,3,2,1],[1,1,3,2]]
+	for i in range(len(matrix)):
+		thread=ThreadWithReturnValue(target=ForceCandidates, args=[matrix[i],target[i],multipliers[i],limit])
+		thread.start()
+		threadPool.append(thread)
+	for y in range(len(threadPool)):
+		result=threadPool[y].join()
+		for candidate in result:
+			allCandidates[y].append(candidate)
 	return allCandidates
 
 def GetSubKey10(allCandidates,original):
@@ -141,10 +141,22 @@ ShiftRowsdDual = lambda m, sgn: np.array([np.roll(row, sgn*i) for i, row in enum
 ShiftRows = lambda m: ShiftRowsdDual(m, -1)
 
 if __name__ == "__main__":
-	if len(sys.argv)!=2:
-		print("[i] Provide a valid .dat file.")
+	limit=0
+	log=False
+	if len(sys.argv)<2:
+		print("[DFA] Provide a valid .dat file.")
 		sys.exit(0)
+	else:
+		for param in sys.argv:
+			if "limit=" in param:
+				limit=int(param)
+			elif "-log" in param:
+				log=True
+				logs=open("dfa-log.txt","w")
 
+	print(f"[DFA] Trace file selected: {sys.argv[1]}.")
+	print(f"[DFA] Candidates needed: {limit}.")
+	print("[DFA] Logging "+("enabled." if log else "disabled."))
 	file=open(sys.argv[1],"r")
 	readfile=file.read().split()
 	
@@ -154,7 +166,13 @@ if __name__ == "__main__":
 	patterns=[np.array([[1,0,0,0],[0,0,0,1],[0,0,1,0],[0,1,0,0]]),np.array([[0,1,0,0],[1,0,0,0],[0,0,0,1],[0,0,1,0]]),np.array([[0,0,1,0],[0,1,0,0],[1,0,0,0],[0,0,0,1]]),np.array([[0,0,0,1],[0,0,1,0],[0,1,0,0],[1,0,0,0]])]
 	
 	matrix=GenerateEOUTMatrix(patterns,xorfaults)
-	allCandidates=FindAllCandidates(matrix)
+	allCandidates=FindAllCandidates(matrix,limit)
 	subKey10=GetSubKey10(allCandidates,original)
-	print(f"[i] Subkey10: {vhex(subKey10)}")
-	print(f"[i] MasterKey: {Round2MasterKey(subKey10)}")
+	masterKey=Round2MasterKey(subKey10)
+	print("[DFA] SubKey10.")
+	print(vhex(subKey10))
+	print("[DFA] MasterKey.")
+	print(vhex(masterKey))
+	
+	if logs:
+		logs.write(str(allCandidates))
