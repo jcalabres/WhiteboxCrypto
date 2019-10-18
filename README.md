@@ -2,13 +2,19 @@
 
 This repository contains a WBC DFA attack implementation.
 
-<img src="https://img.shields.io/badge/kikones34-approved-blue" alt="approved">
-
 ## What is DFA?
 
 *Differential fault analysis (DFA) is a type of side channel attack in the field of cryptography, specifically cryptanalysis. The principle is to induce faults—unexpected environmental conditions—into cryptographic implementations, to reveal their internal states.*
 
 ## Requirements
+
+### Python Dependencies
+
+```shell
+pip3 install -r requirements.txt
+```
+
+### Traces
 
 In order to perform a DFA attack, it's needed to provide some traces.
 
@@ -57,12 +63,14 @@ The tool will do the next output:
 [DFA] Starting thread for target [(0, 3), (1, 2), (2, 1), (3, 0)].
 [DFA] SubKey10.
 [['0x22' '0xf4' '0x32' '0xfa']
- ['0xf1' '0x79' '0x12' '0x8e']
- ['0xc' '0x86' '0x14' '0xe1']
- ['0x20' '0x12' '0x4' '0x20']]
+['0xf1' '0x79' '0x12' '0x8e']
+['0xc' '0x86' '0x14' '0xe1']
+['0x20' '0x12' '0x4' '0x20']]
 [DFA] MasterKey.
-['0xca' '0xfe' '0xba' '0xbe' '0xde' '0xad' '0xbe' '0xef' '0xca' '0xfe'
- '0xba' '0xbe' '0xde' '0xad' '0xbe' '0xef']
+[['0xca' '0xfe' '0xba' '0xbe']
+['0xde' '0xad' '0xbe' '0xef']
+['0xca' '0xfe' '0xba' '0xbe']
+['0xde' '0xad' '0xbe' '0xef']]
 ```
 
 The SubKey10 and MasterKey will be printed.
@@ -73,3 +81,5 @@ A project inspired by:
 
 * Differential Fault Analysis on A.E.S.
 * People breaking WBC implementations.
+
+<img src="https://img.shields.io/badge/kikones34-approved-blue" alt="approved">

@@ -115,7 +115,7 @@ def Round2MasterKey(key):
 			guessKeyVector.append(key[j][i])
 	for rcon in rcons:
 		guessKeyVector=PreviousRoundKey(guessKeyVector,rcon)
-	return guessKeyVector
+	return np.array(guessKeyVector).reshape(4,4)
 
 def PreviousRoundKey(key,rcon):
 	rk=[]
